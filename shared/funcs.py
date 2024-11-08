@@ -225,10 +225,13 @@ async def is_proxy_working(ip, port, login, password):
                 if response.status == 200:
                     return True
                 else:
-                    logger.info(response.status)
+                    logger.error(f"Returned status {response.status} for {proxy_url}")
                     return False
+        except aiohttp.ClientError as e:
+            logger.error(f"Client error with proxy {proxy_url}: {str(e)}")
+            return False
         except Exception as e:
-            logger.info(str(e))
+            logger.error(f"Unexpected error with proxy {proxy_url}: {str(e)}")
             return False
 
 
