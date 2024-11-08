@@ -1,0 +1,18 @@
+{
+    "proxies": {
+        "1": {
+            "use_proxy": true,
+            "ip": "mg-15017.sp4.ovh",
+            "port": "11001",
+            "login": "Testtask1_0",
+            "password": "2zz59s9h$w"
+        },
+        "2": {
+            "use_proxy": true,
+            "ip": "rg-13221.sp2.ovh",
+            "port": "11001",
+            "login": "Testtask2_0",
+            "password": "h3hpuvxf"
+        }
+    }
+}
