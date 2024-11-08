@@ -220,7 +220,7 @@ async def request_loop(user_id, frequency, url, state, message, duration=None):
             active_sessions[user_id].remove(url)
             task = active_tasks[user_id].pop(url)
             task.cancel()
-            await task_manager.remove_user_task(user_id, url)  # Видалення задачi з контексту
+            await task_manager.remove_user_task(user_id, url)  # Видалення задачi зконтексту
             if not active_sessions.get(user_id, []):
                 await state.set_state(UserState.waiting_for_start)
             await message.answer("⬇️ Використовуйте кнопку нижче:", reply_markup=get_start_keyboard(user_id))#  виправлено
