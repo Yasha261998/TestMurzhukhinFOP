@@ -12,6 +12,7 @@ bs4 = "^0.0.2"
 phonenumbers = "^8.13.48"
 tldextract = "^5.1.2"
 python-dotenv = "^1.0.1"
+random-user-agent = "^1.0.1"
 
 
 [build-system]

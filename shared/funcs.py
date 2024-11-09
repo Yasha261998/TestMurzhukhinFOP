@@ -10,11 +10,22 @@ from urllib.parse import quote
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from random_user_agent.user_agent import UserAgent
+from random_user_agent.params import OperatingSystem, SoftwareType, Popularity
+
 from .callbacks import ProxyEditingCallbackData
 from .keyboards import demo_duration_keyboard, admin_duration_keyboard, start_keyboard, admin_start_keyboard
 from .data import ukrainian_names, operators
-from .config import (USERS_FILE, PROXIES_FILE, logger)
+from .config import USERS_FILE, PROXIES_FILE, logger
 
+# Параметри випадкових User Agents
+software_types = [SoftwareType.WEB_BROWSER.value]
+popularity = [Popularity.POPULAR.value]
+operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value, OperatingSystem.MAC.value]
+user_agent_rotator = UserAgent(software_types=software_types,
+                               operating_systems=operating_systems,
+                               popularity=popularity,
+                               limit=50)
 
 # Функція для генерації випадкового українського імені
 def generate_name():
@@ -47,8 +58,8 @@ def is_valid_url(url):
 def load_users_data(filepath='users.json'):
     try:
         with open(filepath, 'r') as file:
-            users = json.load(file)
-        return users
+            users_json = json.load(file)
+        return users_json
     except FileNotFoundError:
         return {}
 
@@ -208,17 +219,22 @@ def generate_proxy_inline_keyboard(proxy_id, use_proxy):
 
 
 # Функція для перевірки працездатності проксі за заданими параметрами.
-async def is_proxy_working(ip, port, login, password):
+async def is_proxy_working(ip, port, login, password, user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                                                                 'AppleWebKit/537.36 (KHTML, like Gecko) '
+                                                                 'Chrome/87.0.4280.88 Safari/537.36'):
     proxy_url = f'http://{quote(login)}:{quote(password)}@{ip}:{port}'
-    url = 'https://httpbin.org/ip'  # Тестовый URL для перевiрки проксi
+    url = "https://checkip.amazonaws.com"   # Тестовый URL для перевiрки проксi
+    # url = 'https://ifconfig.me/ip'
+    # url = 'https://httpbin.org/ip'
 
-    timeout = aiohttp.ClientTimeout(total=20)
+    timeout = aiohttp.ClientTimeout(total=15)
 
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False), timeout=timeout) as session:
         try:
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'
+                'User-Agent': user_agent
             }
+            # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'
 
             async with session.get(url, proxy=proxy_url, headers=headers) as response:
 
@@ -236,7 +252,6 @@ async def is_proxy_working(ip, port, login, password):
 
 
 # Функція для підготовки повідомлень про проксі з інформацією та інлайн-клавіатурами.
-
 async def prepare_proxy_messages(proxies_dict: dict) -> list:
     proxy_messages = []
     for proxy_id, proxy_data in proxies_dict.items():
@@ -319,3 +334,8 @@ def delete_proxy(proxy_id):
 
     with open('proxies.json', 'w') as file:
         json.dump(data, file, indent=4)
+
+
+# Функція отримання випадкового User Agent
+def get_user_agent():
+    return user_agent_rotator.get_random_user_agent()

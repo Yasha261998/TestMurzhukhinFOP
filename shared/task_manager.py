@@ -59,7 +59,7 @@ class TaskManager:
 
         return counters
 
-    # Функція для запуску нових задач для відправки запитів з збереженням лічильників.
+    # Функція для запуску нових задач для відправки запитів зі збереженням лічильників.
     async def restart_user_requests_with_counters(self, user_id, frequency, counters, state, message, duration):
 
         from routers.request_router import request_loop

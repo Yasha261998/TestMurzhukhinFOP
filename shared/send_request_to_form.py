@@ -6,11 +6,14 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlsplit, urlunsplit
 
 from .config import (user_request_counter, logger)
-from .funcs import generate_name, generate_phone_number, is_proxy_working, load_proxies, get_proxy_url
+from .funcs import generate_name, generate_phone_number, is_proxy_working, load_proxies, get_proxy_url, get_user_agent
 
 
 async def send_request_to_form(url, user_id):
     logger.info(f"Запит до форми: {url}")
+    # Отримання User Agent
+    user_agent = get_user_agent()
+
     # Формування проксі
     all_proxies = load_proxies()  # Всi проксi
 
@@ -18,12 +21,14 @@ async def send_request_to_form(url, user_id):
     proxies = []
 
     if enabled_proxies:
+        attempts_user_agents = 2
         for proxy in enabled_proxies:
             if await is_proxy_working(
                     ip=proxy['ip'],
                     port=proxy['port'],
                     login=proxy['login'],
-                    password=proxy['password']
+                    password=proxy['password'],
+                    user_agent=user_agent
             ):
                 proxies.append(get_proxy_url(proxy))
             else:
@@ -34,7 +39,7 @@ async def send_request_to_form(url, user_id):
 
     logger.info(proxies)
     attempts = 3  # Загальна кількість спроб
-    timeout = 10  # Таймаут для запитів
+    timeout = 15  # Таймаут для запитів
 
     for attempt in range(attempts):
         proxy_url = random.choice(proxies) if proxies else None
@@ -44,7 +49,7 @@ async def send_request_to_form(url, user_id):
             try:
                 logger.info(f"Надсилаємо GET запит до: {url}")
                 headers = {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'
+                    'User-Agent': user_agent
                 }
 
                 async with session.get(url, proxy=proxy_url, headers=headers, timeout=timeout) as response:
@@ -62,7 +67,11 @@ async def send_request_to_form(url, user_id):
                     form = soup.find('form')
 
                     if not form:
-                        return "Форма не знайдена."
+                        if attempt < attempts - 1:  # Якщо це не остання спроба
+                            logger.warning(f"Форма не знайдена. Спроба {attempt+1}")
+                            await asyncio.sleep(2)  # Затримка перед повтором
+                            continue  # Повертаємось до початку циклу
+                        return "Форма не знайдена на сторінці."
 
                     action = form.get('action')
                     if action:

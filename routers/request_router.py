@@ -191,7 +191,7 @@ async def request_loop(user_id, frequency, url, state, message, duration=None):
     else:
         user_request_counter[user_id] = {url: 0}
     delay_mapping = {
-        "Без затримки 🚀": 0,
+        "Без затримки 🚀": 0.2,
         "1 заявка в 10 секунд ⏳": 10,
         "1 заявка в 10 хвилин ⌛": 600,
         "1 заявка в 60 хвилин ⌛": 3600
@@ -220,7 +220,7 @@ async def request_loop(user_id, frequency, url, state, message, duration=None):
             active_sessions[user_id].remove(url)
             task = active_tasks[user_id].pop(url)
             task.cancel()
-            await task_manager.remove_user_task(user_id, url)  # Видалення задачi зконтексту
+            await task_manager.remove_user_task(user_id, url)  # Видалення задачi з контексту
             if not active_sessions.get(user_id, []):
                 await state.set_state(UserState.waiting_for_start)
             await message.answer("⬇️ Використовуйте кнопку нижче:", reply_markup=get_start_keyboard(user_id))#  виправлено
